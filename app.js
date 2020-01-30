@@ -1,5 +1,5 @@
 const express = require("express");
-const fileUpload = require("express-fileUpload");
+const fileUpload = require("express-fileUpload/lib/index.js");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
@@ -17,10 +17,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //include routes
+app.use(fileUpload({}));
+
 app.use("/user", require("./Routes/user"));
 
 //enable file upload
-app.use("/file", express.static(__dirname + "public"));
-app.use(fileUpload());
+// app.use("/file", express.static(__dirname + "public"));
 
 module.exports = app;

@@ -1,16 +1,15 @@
-const express = require("express");
-const fileUpload = require("express-fileupload");
 const mongoose = require("mongoose");
 const File = mongoose.model("File");
-const formidable = require("formidable");
-const bodyParser = require("body-parser");
 
 exports.addFile = async (req, res) => {
   let file;
   let uploadPath;
   try {
-    if (!req.files || Object.keys(req.files).length === 0)
+    if (!req.files) {
+      // console.log(req.files.sampleFile);
       throw "No files were uploaded.";
+    }
+
     res.send("req.files >>>", req.files); // eslint-disable-line
     file = req.files.sampleFile;
     uploadPath = __dirname + "/uploads/" + file.name;

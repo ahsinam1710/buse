@@ -1,12 +1,7 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const md5 = require("md5");
-const async = require("async");
-const crypto = require("crypto");
-const waterfall = require("async-waterfall");
 const nodemailer = require("nodemailer");
-const smtpTransport = require("nodemailer-smtp-transport");
-const secret = require("secret");
 const User = mongoose.model("User");
 exports.register = async (req, res) => {
   try {
@@ -44,83 +39,43 @@ exports.login = async (req, res) => {
 };
 
 exports.forgot = async (req, res, next) => {
-  async.waterfall(
-    [
-      callback => {
-        crypto.randomBytes(20, (err, buf) => {
-          const random = buf.toString("hex");
-          callback(err, random);
-        });
-      },
-      (random, callback) => {
-        let check = User.findOne({ email: req.body.email });
-        try {
-          const { passwordResetToken, passwordResetExpires } = req.body;
-          if (!User) throw "Invalid Email";
-          reset = new User({ passwordResetToken, passwordResetExpires });
-          reset.passwordResetToken = random;
-          // Allocated 1 hour time for reset. After that token becomes invalid
-          reset.passwordResetExpires = Date.now + 60 * 60 * 1000;
-          reset.save();
-        } catch (err) {
-          res.status(400).json({
-            message: err
-          });
-        }
-      },
-      //Send email to user
-      (random, reset, callback) => {
-        const smtpTransport = nodemailer.createTransport({
-          service: "Gmail",
-          know: {
-            user: secret.know.user,
-            pass: secret.know.password
-          }
-        });
-        const mailOption = {
-          to: user.email,
-          from: "BUSE" + "<" + secret.know.user + ">",
-          subject: "BUSE Application Password Reset Token",
-          text:
-            "You have requested for password reset token.\n\n" +
-            "Please click on the link to complete the process:\n\n" +
-            "http://localhost/reset/" +
-            random +
-            "\n\n"
-        };
-        smtpTransport.sendMail(mailOption, (err, res) => {
-          req.flash(
-            "info",
-            "A Passwort reset token has been sent to " + user.email
-          );
-          return callback(err, user);
-        });
-      }
-    ],
-    err => {
-      if (err) {
-        return next(err);
-      }
-      res.redirect("/forgot");
-    }
-  );
-};
-exports.reset = async (req, res) => {
   try {
-    const { passwordResetExpires, passwordResetToken } = req.body;
-    user.findOne({
-      passwordResetToken: req.params.token,
-      passwordResetExpires: {
-        $gt: Date.now()
+    let user = await User.findOne({ email: req.body.email });
+    if (!user) throw "Invalid Email";
+
+    const random = Math.floor(Math.random() * 100000) + 1;
+
+    reset = new User({ passwordResetToken, passwordResetExpires });
+    user.passwordResetToken = random;
+    user.passwordResetExpires = Date.now() + 3600000;
+    await user.save();
+
+    const gmailUsername = "";
+    const gmailPassword = "";
+
+    const smtpTransport = nodemailer.createTransport({
+      service: "Gmail",
+      know: {
+        user: gmailUsername,
+        pass: gmailPassword
       }
     });
-    if (!reset.passwordResetExpires)
-      throw "Password reset token has exprired or is Invalid";
-    res.redirect("/reset" + req.params.token);
-    res.render("/user/forgot", {
-      title: "Reset your password",
-      message: errors,
-      hasErrors: errors.length > 0
+
+    const mailOption = {
+      to: user.email,
+      from: "BUSE" + "<" + gmailUsername + ">",
+      subject: "BUSE Application Password Reset Token",
+      text: `You have requested for password reset token.
+         Please click on the link to complete the process:
+         http://localhost/reset/${random}`
+    };
+
+    smtpTransport.sendMail(mailOption, (err, res) => {
+      if (err) throw err;
+    });
+
+    res.json({
+      message: "A password reset email has been sent to " + user.email
     });
   } catch (err) {
     res.status(400).json({
@@ -128,6 +83,30 @@ exports.reset = async (req, res) => {
     });
   }
 };
+exports.reset = async (req, res) => {
+  // try {
+  //   const { passwordResetExpires, passwordResetToken } = req.body;
+  //   user.findOne({
+  //     passwordResetToken: req.params.token,
+  //     passwordResetExpires: {
+  //       $gt: Date.now()
+  //     }
+  //   });
+  //   if (!reset.passwordResetExpires)
+  //     throw "Password reset token has exprired or is Invalid";
+  //   res.redirect("/reset" + req.params.token);
+  //   res.render("/user/forgot", {
+  //     title: "Reset your password",
+  //     message: errors,
+  //     hasErrors: errors.length > 0
+  //   });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     message: err
+  //   });
+  // }
+};
+
 exports.getprofile = async (req, res) => {
   const user = await User.findById(req.id);
   res.json({ message: "Hi " + user.name, user });

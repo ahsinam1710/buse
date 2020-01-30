@@ -19,5 +19,5 @@ require("./Models/File");
 const app = require("./app");
 //start the server
 app.listen(7000, () => {
-  console.log("server started");
+  console.log("server started on 7000");
 });
