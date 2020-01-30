@@ -14,7 +14,11 @@ router.get("/profile", auth, userController.getprofile);
 router.get("/allprofile", auth, userController.getAllProfile);
 //logout
 router.get("/logout", userController.logout);
-
+//forgot Password
+router.get("/forget", userController.getResetPassword);
+router.post("/forgot", userController.getResetPassword);
+//reset password
+//router.get("/reset",userController.)
 //post controller routes
 router.post("/post", auth, postController.addPost);
 router.get("/post", auth, postController.getPost);

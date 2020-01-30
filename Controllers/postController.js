@@ -16,6 +16,6 @@ exports.addPost = async (req, res) => {
 };
 
 exports.getPost = async (req, res) => {
-  const post = await Post.find();
+  const post = await Post.find({ user_id: req.params.user_id });
   res.json({ post });
 };

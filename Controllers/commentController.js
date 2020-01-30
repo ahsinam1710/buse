@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Comment = mongoose.model("Comment");
 const Post = mongoose.model("Post");
+const join = require("join");
 
 exports.addComment = async (req, res) => {
   try {
@@ -20,6 +21,21 @@ exports.addComment = async (req, res) => {
     });
   }
 };
+//join post and comment
+buse.Comment.aggregate([
+  {
+    $lookup: {
+      from: "Post",
+      localField: "post_id",
+      foreignField: "_id",
+      as: "comments"
+    }
+  }
+]).toArray((err, res) => {
+  if (err) throw err;
+  console.log(JSON.stringify(res));
+  buse.close();
+});
 
 exports.getComment = async (req, res) => {
   const comment = await Comment.find({ post_id: req.params.post_id });

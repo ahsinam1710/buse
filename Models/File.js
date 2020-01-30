@@ -7,7 +7,7 @@ const fileSchema = new mongoose.Schema(
       trim: true,
       required: "URL is requiered"
     },
-    sub_category_id: {
+    file_id: {
       type: String,
       trim: true,
       required: "Category is required"
