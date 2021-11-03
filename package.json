@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
-    "Validator": "^1.0.8",
+    "Validator": "^1.1.4",
     "async-waterfall": "^0.1.5",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
